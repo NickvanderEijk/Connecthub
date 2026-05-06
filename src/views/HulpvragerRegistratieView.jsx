@@ -45,6 +45,7 @@ function HulpvragerRegistratieView({ onComplete, onLoginClick }) {
 
   const handleFinish = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setError('');
 
@@ -73,18 +74,18 @@ function HulpvragerRegistratieView({ onComplete, onLoginClick }) {
       
       await setDoc(doc(db, 'users', user.uid), userData);
 
-      // 3. Ga door naar dashboard
-      onComplete(userData);
+      // 3. Ga door naar dashboard of home!
+      if (onComplete) onComplete(userData);
       
     } catch (err) {
       console.error("Registratie fout:", err);
       if (err.code === 'auth/email-already-in-use') {
          setError('Dit e-mailadres is al in gebruik. Probeer in te loggen.');
       } else {
-         setError('Er ging iets mis bij de registratie. Probeer het later opnieuw.');
+         setError(`Er ging iets mis: ${err.message}. Probeer het later opnieuw.`);
       }
     } finally {
-      setLoading(false);
+      if (document.body) { setLoading(false); } // Avoid crash if component unmounted
     }
   };
 
@@ -277,7 +278,7 @@ function HulpvragerRegistratieView({ onComplete, onLoginClick }) {
               <div className="pt-6 flex gap-4">
                 <button type="button" onClick={() => setStep(3)} className="w-1/3 py-6 rounded-2xl bg-gray-200 text-gray-700 font-extrabold text-2xl hover:bg-gray-300 transition-colors">Terug</button>
                 <button disabled={loading} type="submit" className="w-2/3 py-6 bg-green-600 text-white font-extrabold text-3xl rounded-2xl hover:bg-green-700 transition-colors shadow-2xl focus:ring-8 focus:ring-green-200">
-                  {loading ? 'Bezig met opslaan...' : 'Afronden en Plaats Klus'}
+                  {loading ? 'Bezig met opslaan...' : 'Account afronden'}
                 </button>
               </div>
             </form>

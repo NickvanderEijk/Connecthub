@@ -91,12 +91,20 @@ function App() {
              )}
 
              {(!loggedInUser) && (
-               <button 
-                 onClick={() => setCurrentView('helper-registratie')}
-                 className={`px-6 py-3 font-bold text-xl rounded-xl transition-colors shadow focus:ring-4 focus:ring-white w-full sm:w-auto ${currentView === 'helper-registratie' ? 'bg-white text-[#1D4ED8]' : 'bg-[var(--color-brand-light)] text-[var(--color-brand-dark)] hover:bg-gray-200'}`}
-               >
-                 Word helper
-               </button>
+               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                 <button 
+                   onClick={() => setCurrentView('helper-registratie')}
+                   className={`px-6 py-3 font-bold text-xl rounded-xl transition-colors shadow focus:ring-4 focus:ring-white w-full sm:w-auto ${currentView === 'helper-registratie' ? 'bg-white text-[#1D4ED8]' : 'bg-[#1D4ED8] border-2 border-white text-white hover:bg-[#1E3A8A]'}`}
+                 >
+                   Word helper
+                 </button>
+                 <button 
+                   onClick={() => setCurrentView('login')}
+                   className="px-6 py-3 font-bold text-xl rounded-xl transition-colors shadow focus:ring-4 focus:ring-blue-300 w-full sm:w-auto bg-white text-[#1D4ED8] hover:bg-gray-100"
+                 >
+                   Inloggen
+                 </button>
+               </div>
              )}
 
              {loggedInUser?.role === 'hulpvrager' && (
@@ -207,14 +215,14 @@ function App() {
          </div>
       ) : (
         <main className="flex-1 overflow-y-auto pb-32">
-          {currentView === 'home' && <HomeView onNavigate={handleNavigate} />}
-          {currentView === 'plaats-klus' && <PlaatsKlusView onSubmit={() => setCurrentView('mijn-dashboard')} loggedInUser={loggedInUser} />}
-          {currentView === 'hulpvrager-registratie' && <HulpvragerRegistratieView onComplete={() => setCurrentView('mijn-dashboard')} onLoginClick={() => setCurrentView('login')} />}
+          {currentView === 'home' && <HomeView onNavigate={handleNavigate} loggedInUser={loggedInUser} />}
+          {currentView === 'plaats-klus' && <PlaatsKlusView onSubmit={() => setCurrentView('home')} loggedInUser={loggedInUser} />}
+          {currentView === 'hulpvrager-registratie' && <HulpvragerRegistratieView onComplete={() => setCurrentView('home')} onLoginClick={() => setCurrentView('login')} />}
           {currentView === 'open-klussen' && <OpenKlussenView />}
-          {currentView === 'helper-registratie' && <HelperRegistratieView onNext={() => setCurrentView('helper-dashboard')} onLoginClick={() => setCurrentView('login')} />}
+          {currentView === 'helper-registratie' && <HelperRegistratieView onNext={() => setCurrentView('home')} onLoginClick={() => setCurrentView('login')} />}
           {currentView === 'mijn-dashboard' && <MijnDashboardView onMatch={handleStartMatch} onNavigate={setCurrentView} />}
           {currentView === 'helper-dashboard' && <HelperDashboardView loggedInUser={loggedInUser} onNavigate={setCurrentView} />}
-          {currentView === 'login' && <LoginView onLogin={(user) => { setCurrentView(user?.role === 'helper' ? 'helper-dashboard' : 'mijn-dashboard'); }} onNavigate={setCurrentView} />}
+          {currentView === 'login' && <LoginView onLogin={(user) => { setCurrentView('home'); }} onNavigate={setCurrentView} />}
           {currentView === 'match-flow' && <MatchFlowView matchData={activeMatchData} onBack={() => setCurrentView('mijn-dashboard')} />}
           {currentView === 'account-settings' && <AccountSettingsView loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} onBack={() => setCurrentView(loggedInUser?.role === 'helper' ? 'helper-dashboard' : 'mijn-dashboard')} />}
         </main>

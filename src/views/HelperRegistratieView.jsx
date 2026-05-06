@@ -50,6 +50,7 @@ function HelperRegistratieView({ onNext, onLoginClick }) {
       return;
     }
     
+    if (loading) return;
     setLoading(true);
     try {
       // 1. Create Auth User
@@ -75,21 +76,23 @@ function HelperRegistratieView({ onNext, onLoginClick }) {
       
       await setDoc(doc(db, 'users', user.uid), userData);
       
-      // 3. Move to Thank You screen
-      setStep(5);
-      
-      // We pass the user up to App just in case
-      onNext(userData);
+      if (document.body) {
+         // 3. Move to Thank You screen
+         setStep(5);
+         
+         // We pass the user up to App so they redirect
+         if (onNext) onNext(userData);
+      }
       
     } catch (err) {
       console.error("Registratie fout:", err);
       if (err.code === 'auth/email-already-in-use') {
          alert('Dit e-mailadres is al in gebruik. Probeer in te loggen.');
       } else {
-         alert('Er ging iets mis bij de registratie. Probeer het later opnieuw.');
+         alert(`Er ging iets mis: ${err.message}. Probeer het later opnieuw.`);
       }
     } finally {
-      setLoading(false);
+      if (document.body) setLoading(false);
     }
   };
 
@@ -327,7 +330,7 @@ function HelperRegistratieView({ onNext, onLoginClick }) {
                 <div className="pt-6 flex gap-4">
                   <button type="button" onClick={() => setStep(3)} className="w-1/3 py-6 rounded-2xl bg-gray-200 text-gray-700 font-extrabold text-2xl hover:bg-gray-300 transition-colors">Terug</button>
                   <button disabled={loading} type="submit" className="w-2/3 py-6 bg-green-600 text-white font-extrabold text-3xl rounded-2xl hover:bg-green-700 transition-colors shadow-xl focus:ring-8 focus:ring-green-200">
-                    {loading ? 'Bezig met opslaan...' : 'Afronden'}
+                    {loading ? 'Bezig met opslaan...' : 'Account afronden'}
                   </button>
                 </div>
               </form>
