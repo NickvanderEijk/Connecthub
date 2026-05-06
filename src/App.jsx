@@ -10,6 +10,7 @@ import HelperDashboardView from './views/HelperDashboardView';
 import LoginView from './views/LoginView';
 import MatchFlowView from './views/MatchFlowView';
 import AccountSettingsView from './views/AccountSettingsView';
+import PublicProfileView from './views/PublicProfileView';
 
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
@@ -18,6 +19,7 @@ import { auth, db } from './lib/firebase';
 function App() {
   const [currentView, setCurrentView] = useState('home'); // 'home', 'plaats-klus', 'open-klussen', 'helper-registratie', 'hulpvrager-registratie', 'mijn-dashboard', 'match-flow', 'account-settings', 'login'
   const [activeMatchData, setActiveMatchData] = useState(null); // { student, request }
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
@@ -52,11 +54,14 @@ function App() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleNavigate = (view) => {
+  const handleNavigate = (view, data = null) => {
     setIsUserMenuOpen(false);
     if (view === 'plaats-klus' && !loggedInUser) {
       setCurrentView('hulpvrager-registratie');
     } else {
+      if (view === 'profiel') {
+        setSelectedUserId(data);
+      }
       setCurrentView(view);
     }
   };
@@ -217,14 +222,15 @@ function App() {
         <main className="flex-1 overflow-y-auto pb-32">
           {currentView === 'home' && <HomeView onNavigate={handleNavigate} loggedInUser={loggedInUser} />}
           {currentView === 'plaats-klus' && <PlaatsKlusView onSubmit={() => setCurrentView('home')} loggedInUser={loggedInUser} />}
-          {currentView === 'hulpvrager-registratie' && <HulpvragerRegistratieView onComplete={() => setCurrentView('home')} onLoginClick={() => setCurrentView('login')} />}
-          {currentView === 'open-klussen' && <OpenKlussenView />}
-          {currentView === 'helper-registratie' && <HelperRegistratieView onNext={() => setCurrentView('home')} onLoginClick={() => setCurrentView('login')} />}
-          {currentView === 'mijn-dashboard' && <MijnDashboardView onMatch={handleStartMatch} onNavigate={setCurrentView} />}
-          {currentView === 'helper-dashboard' && <HelperDashboardView loggedInUser={loggedInUser} onNavigate={setCurrentView} />}
-          {currentView === 'login' && <LoginView onLogin={(user) => { setCurrentView('home'); }} onNavigate={setCurrentView} />}
-          {currentView === 'match-flow' && <MatchFlowView matchData={activeMatchData} onBack={() => setCurrentView('mijn-dashboard')} />}
-          {currentView === 'account-settings' && <AccountSettingsView loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} onBack={() => setCurrentView(loggedInUser?.role === 'helper' ? 'helper-dashboard' : 'mijn-dashboard')} />}
+          {currentView === 'hulpvrager-registratie' && <HulpvragerRegistratieView onComplete={() => setCurrentView('home')} onLoginClick={() => handleNavigate('login')} />}
+          {currentView === 'open-klussen' && <OpenKlussenView loggedInUser={loggedInUser} onNavigate={handleNavigate} />}
+          {currentView === 'helper-registratie' && <HelperRegistratieView onNext={() => setCurrentView('home')} onLoginClick={() => handleNavigate('login')} />}
+          {currentView === 'mijn-dashboard' && <MijnDashboardView onMatch={handleStartMatch} onNavigate={handleNavigate} loggedInUser={loggedInUser} />}
+          {currentView === 'helper-dashboard' && <HelperDashboardView loggedInUser={loggedInUser} onNavigate={handleNavigate} />}
+          {currentView === 'login' && <LoginView onLogin={(user) => { setCurrentView('home'); }} onNavigate={handleNavigate} />}
+          {currentView === 'match-flow' && <MatchFlowView matchData={activeMatchData} onBack={() => handleNavigate('mijn-dashboard')} />}
+          {currentView === 'account-settings' && <AccountSettingsView loggedInUser={loggedInUser} setLoggedInUser={setLoggedInUser} onBack={() => handleNavigate(loggedInUser?.role === 'helper' ? 'helper-dashboard' : 'mijn-dashboard')} />}
+          {currentView === 'profiel' && <PublicProfileView userId={selectedUserId} onBack={() => handleNavigate('mijn-dashboard')} />}
         </main>
       )}
 

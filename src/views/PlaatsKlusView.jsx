@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { FileText, Sprout, Tag, Euro, Send } from 'lucide-react';
+import { FileText, Sprout, Tag, Euro, Send, MapPin } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 function PlaatsKlusView({ onSubmit, loggedInUser }) {
   const [titel, setTitel] = useState('');
-  const [omschrijving, setOmschrijving] = useState('');
-  const [categorie, setCategorie] = useState('Tuin');
-  const [vergoeding, setVergoeding] = useState('');
+  const [beschrijving, setBeschrijving] = useState('');
+  const [aantalUren, setAantalUren] = useState('');
+  const [uurloon, setUurloon] = useState('');
+  const [exactAddress, setExactAddress] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -18,13 +19,19 @@ function PlaatsKlusView({ onSubmit, loggedInUser }) {
       return;
     }
 
+    const uren = parseFloat(aantalUren.replace(',', '.') || 0);
+    const loon = parseFloat(uurloon.replace(',', '.') || 0);
+    const totaalbedrag = uren * loon;
+
     setLoading(true);
     try {
       await addDoc(collection(db, 'jobs'), {
         titel,
-        omschrijving,
-        categorie,
-        vergoeding: parseFloat(vergoeding.replace(',', '.')),
+        beschrijving,
+        aantalUren: uren,
+        uurloon: loon,
+        totaalbedrag,
+        exactAddress,
         userId: loggedInUser.uid,
         status: 'open',
         createdAt: serverTimestamp()
@@ -67,53 +74,75 @@ function PlaatsKlusView({ onSubmit, loggedInUser }) {
 
           <div>
             <label className="block text-2xl font-bold mb-3 text-[var(--color-brand-dark)] flex items-center gap-2">
-              <Sprout className="w-6 h-6 text-[#1D4ED8]" /> Uitgebreide omschrijving
+              <Sprout className="w-6 h-6 text-[#1D4ED8]" /> Beschrijving
             </label>
             <textarea 
               required 
-              value={omschrijving}
-              onChange={e => setOmschrijving(e.target.value)}
+              value={beschrijving}
+              onChange={e => setBeschrijving(e.target.value)}
               rows="4" 
               placeholder="Omschrijf duidelijk wat er moet gebeuren..." 
               className="w-full text-2xl p-5 outline-none bg-[#F8FAFC] border-2 border-gray-200 rounded-2xl focus:border-[#1D4ED8] focus:ring-4 focus:ring-blue-100 transition-all font-medium resize-none"
             ></textarea>
           </div>
 
+          <div>
+            <label className="block text-2xl font-bold mb-3 text-[var(--color-brand-dark)] flex items-center gap-2">
+              <MapPin className="w-6 h-6 text-[#1D4ED8]" /> Exact Adres
+            </label>
+            <p className="text-lg text-gray-500 font-medium mb-3">Dit adres wordt 100% afgeschermd en pas gedeeld zodra beide partijen de servicekosten hebben voldaan.</p>
+            <input 
+              required 
+              value={exactAddress}
+              onChange={e => setExactAddress(e.target.value)}
+              type="text" 
+              placeholder="Bijv. Dorpsstraat 10, 1234AB Woonplaats" 
+              className="w-full text-2xl p-5 outline-none bg-[#F8FAFC] border-2 border-gray-200 rounded-2xl focus:border-[#1D4ED8] focus:ring-4 focus:ring-blue-100 transition-all font-medium" 
+            />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <label className="block text-2xl font-bold mb-3 text-[var(--color-brand-dark)] flex items-center gap-2">
-                <Tag className="w-6 h-6 text-[#1D4ED8]" /> Categorie
+                <FileText className="w-6 h-6 text-[#1D4ED8]" /> Geschat aantal uren
               </label>
-              <select 
-                value={categorie}
-                onChange={e => setCategorie(e.target.value)}
-                className="w-full text-2xl p-5 outline-none bg-[#F8FAFC] border-2 border-gray-200 rounded-2xl focus:border-[#1D4ED8] focus:ring-4 focus:ring-blue-100 transition-all font-medium appearance-none cursor-pointer"
-              >
-                <option value="Tuin">Tuin</option>
-                <option value="Huishouden">Huishouden</option>
-                <option value="ICT">ICT</option>
-                <option value="Boodschappen">Boodschappen</option>
-              </select>
+              <input 
+                required 
+                value={aantalUren}
+                onChange={e => setAantalUren(e.target.value)}
+                type="number" 
+                step="0.5"
+                min="0.5"
+                placeholder="Bijv. 2.5" 
+                className="w-full text-2xl p-5 outline-none bg-[#F8FAFC] border-2 border-gray-200 rounded-2xl focus:border-[#1D4ED8] focus:ring-4 focus:ring-blue-100 transition-all font-medium" 
+              />
             </div>
 
             <div>
               <label className="block text-2xl font-bold mb-3 text-[var(--color-brand-dark)] flex items-center gap-2">
-                <Euro className="w-6 h-6 text-[#1D4ED8]" /> Vergoeding in euro's
+                <Euro className="w-6 h-6 text-[#1D4ED8]" /> Uurloon in euro's
               </label>
               <div className="relative flex items-center">
                 <span className="absolute left-5 text-2xl font-bold text-gray-500">€</span>
                 <input 
                   required 
-                  value={vergoeding}
-                  onChange={e => setVergoeding(e.target.value)}
+                  value={uurloon}
+                  onChange={e => setUurloon(e.target.value)}
                   type="number" 
                   step="0.5"
                   min="0"
                   placeholder="Bijv. 15.00" 
-                  className="w-full text-2xl p-5 pl-12 outline-none bg-white border-2 border-gray-200 rounded-2xl focus:border-[#1D4ED8] focus:ring-4 focus:ring-blue-100 transition-all font-medium" 
+                  className="w-full text-2xl p-5 pl-12 outline-none bg-[#F8FAFC] border-2 border-gray-200 rounded-2xl focus:border-[#1D4ED8] focus:ring-4 focus:ring-blue-100 transition-all font-medium" 
                 />
               </div>
             </div>
+          </div>
+
+          <div className="bg-blue-50 border-2 border-blue-200 p-6 rounded-2xl">
+            <h3 className="text-2xl font-bold text-[#1D4ED8] mb-2">Totaalbedrag voor deze klus:</h3>
+            <p className="text-4xl font-extrabold text-[var(--color-brand-dark)]">
+              € {((parseFloat(aantalUren.replace(',', '.') || 0) * parseFloat(uurloon.replace(',', '.') || 0)).toFixed(2)).replace('.', ',')}
+            </p>
           </div>
 
           <div className="pt-6 border-t-2 border-gray-100">
